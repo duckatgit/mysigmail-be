@@ -6,8 +6,9 @@ const options = {
   useUnifiedTopology: true,
 };
 
-const password = "ofi1VlXA9LgNMidh";
-const clusterURI = "mongodb+srv://duckatgit:" + encodeURIComponent(password) + "@mysigmail.3b9yw2z.mongodb.net/";
+const password = "ofi1VlXA9LgNMidh"; 
+const dbName = "mysigmail"
+const clusterURI = "mongodb+srv://duckatgit:" + encodeURIComponent(password) + "@mysigmail.3b9yw2z.mongodb.net/" + dbName;
 // const clusterURI = "mongodb://localhost:27017/mysigmail-db";
 
 const connectToDatabase = async () => {

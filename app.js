@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const routes = require("./api/routes");
 
 const port = process.env.SERVER_PORT;
 
@@ -32,7 +33,7 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
-// app.use("/api", routes);
+app.use("/api", routes);
 
 
 app.listen(port, () => {
