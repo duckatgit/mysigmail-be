@@ -1,6 +1,9 @@
 require("dotenv").config({ path: "./.env" });
 const express = require("express");
 const app = express();
+const swaggerUi = require("swagger-ui-express");
+const YAML = require("yamljs");
+const swaggerDocument = YAML.load("./swagger.yaml");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const routes = require("./api/routes");
@@ -34,10 +37,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 app.use("/api", routes);
-
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.listen(port, () => {
-    console.log(`App listening at Port: ${port}`);
-  });
+  console.log(`App listening at Port: ${port}`);
+});
 
 module.exports = app;
