@@ -22,6 +22,13 @@ const usersModel = new mongoose.Schema(
       type: String,
       required: true,
     },
+    OTP: {
+      type: Number,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false
+    },
   },
   {
     timestamps: true,

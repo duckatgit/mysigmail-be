@@ -1,7 +1,15 @@
-const { failAction, successAction } = require("../utils/response");
-const { signupUser } = require("../services/authService");
+const {
+  failAction,
+  successAction,
+  customAction,
+} = require("../utils/response");
+const {
+  signupUser,
+  verifyEmailUser,
+  resendVerifyEmailUser,
+} = require("../services/authService");
 
-const signup = async (req, res) => {
+exports.signup = async function (req, res) {
   const payload = req.body;
   let result;
   try {
@@ -14,4 +22,24 @@ const signup = async (req, res) => {
   }
 };
 
-module.exports = signup;
+exports.verifyEmail = async function (req, res) {
+  const payload = req.body;
+  let result;
+  try {
+    result = await verifyEmailUser(payload);
+    res.status(result.status).json(customAction(result));
+  } catch (error) {
+    res.status(400).json(failAction(error));
+  }
+};
+
+exports.resendVerifyEmail = async function (req, res) {
+  const payload = req.body;
+  let result;
+  try {
+    result = await resendVerifyEmailUser(payload);
+    res.status(result.status).json(customAction(result));
+  } catch (error) {
+    res.status(400).json(failAction(error));
+  }
+};
