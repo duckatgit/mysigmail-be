@@ -6,11 +6,12 @@ const signup = async (req, res) => {
   let result;
   try {
     result = await signupUser(payload);
-    res.status(result.status).json(successAction(result.data, "Account created successfully"));
+    res
+      .status(result.status)
+      .json(successAction(result.data, "Account created successfully"));
   } catch (error) {
     res.status(400).json(failAction(error));
   }
 };
 
-
-module.exports =  signup
+module.exports = signup;
