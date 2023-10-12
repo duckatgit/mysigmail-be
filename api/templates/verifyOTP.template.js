@@ -1,7 +1,9 @@
 const verifyOTPTemplate = (firstName, otp) => {
   const message = `<div>
-  <p>Hi, ${firstName}. Please verify your email, by entering the below OTP</p>
-<h1>OTP: ${otp}</h1>
+    <p>Hi ${firstName},</p>
+    <p>Please verify your email by using the OTP below:</p>
+    <h1>OTP: ${otp}</h1>
+    <p>Thanks for using our service!</p>
   </div>`;
   return message;
 };
