@@ -22,7 +22,10 @@ async function signupUser(payload) {
       const isEmailExist = await users.find({ email: email });
 
       if (isEmailExist.length > 0) {
-        return reject("User already exists!");
+        return resolve({
+          status: 409,
+          data: "Email already exist!",
+        });
       } else {
         const OTP = generateRandomNumber();
         const password = payload.password;
@@ -154,7 +157,7 @@ async function signinUser(payload) {
             gender: user?.gender,
             email: user?.email,
           };
-          const token = await createToken(data, 60);
+          const token = await createToken(data, 3600);
           data.token = token;
 
           const result = {

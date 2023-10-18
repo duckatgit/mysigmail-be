@@ -20,7 +20,8 @@ exports.signup = async function (req, res) {
     result = await signupUser(payload);
     res
       .status(result.status)
-      .json(successAction(result.data, "Account created successfully"));
+      res.status(result.status).json(customAction(result));
+
   } catch (error) {
     res.status(400).json(failAction(error));
   }
