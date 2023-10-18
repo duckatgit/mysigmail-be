@@ -15,6 +15,7 @@ const { verifyToken } = require("../utils/jwt");
 
 exports.signup = async function (req, res) {
   const payload = req.body;
+  console.log(payload,"payload")
   let result;
   try {
     result = await signupUser(payload);
