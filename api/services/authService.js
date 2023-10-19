@@ -18,7 +18,7 @@ module.exports = {
 async function signupUser(payload) {
   return new Promise(async function (resolve, reject) {
     try {
-      const email = payload?.email;
+      const email = payload?.email.toLowerCase();
       const isEmailExist = await users.find({ email: email });
 
       if (isEmailExist.length > 0) {
@@ -61,7 +61,7 @@ async function signupUser(payload) {
 async function verifyEmailUser(payload) {
   return new Promise(async function (resolve, reject) {
     try {
-      const email = payload?.email;
+      const email = payload?.email.toLowerCase();
       const user = await users.findOne({ email: email });
 
       if (user) {
@@ -107,7 +107,7 @@ async function verifyEmailUser(payload) {
 async function resendVerifyEmailUser(payload) {
   return new Promise(async function (resolve, reject) {
     try {
-      const email = payload?.email;
+      const email = payload?.email.toLowerCase();
       const filter = { email: email };
       const user = await users.findOne(filter);
       if (user) {
@@ -140,7 +140,7 @@ async function resendVerifyEmailUser(payload) {
 async function signinUser(payload) {
   return new Promise(async function (resolve, reject) {
     try {
-      const email = payload?.email;
+      const email = payload?.email.toLowerCase();
       const filter = { email: email };
       const user = await users.findOne(filter);
       if (user) {
@@ -158,6 +158,7 @@ async function signinUser(payload) {
             email: user?.email,
           };
           const token = await createToken(data, 3600);
+
           data.token = token;
 
           const result = {
@@ -178,7 +179,6 @@ async function signinUser(payload) {
         });
       }
     } catch (error) {
-      console.log(error);
       return reject(error);
     }
   });
@@ -187,7 +187,7 @@ async function signinUser(payload) {
 async function forgotPasswordUser(payload) {
   return new Promise(async function (resolve, reject) {
     try {
-      const email = payload.email;
+      const email = payload.email.toLowerCase();
       const filter = { email: email };
       const user = await users.findOne(filter);
       if (user) {
@@ -201,7 +201,7 @@ async function forgotPasswordUser(payload) {
       } else {
         return resolve({
           status: 501,
-          data: "Email does't exist!",
+          data: "Email doesn't exist!",
         });
       }
     } catch (error) {
@@ -213,7 +213,7 @@ async function forgotPasswordUser(payload) {
 async function setNewPasswordUser(payload) {
   return new Promise(async function (resolve, reject) {
     try {
-      const email = payload.email;
+      const email = payload.email.toLowerCase();
       const password = payload.password;
       const salt = 10;
       const hashPassword = await bcrypt.hash(password, salt);
