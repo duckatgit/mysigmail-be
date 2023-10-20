@@ -110,25 +110,29 @@ async function resendVerifyEmailUser(payload) {
       const email = payload?.email.toLowerCase();
       const filter = { email: email };
       const user = await users.findOne(filter);
-      
+
       if (user) {
-        const OTP = generateRandomNumber();
+        if (user.isVerified) {
+          return resolve({ status: 409, data: "User already verified!" });
+        } else {
+          const OTP = generateRandomNumber();
 
-        const data = {
-          OTP,
-          updatedAt: new Date(),
-        };
-        await users.findOneAndUpdate(filter, data, {
-          new: true,
-        });
+          const data = {
+            OTP,
+            updatedAt: new Date(),
+          };
+          await users.findOneAndUpdate(filter, data, {
+            new: true,
+          });
 
-        const emailTemplate = verifyOTPTemplate(user?.firstName, OTP);
+          const emailTemplate = verifyOTPTemplate(user?.firstName, OTP);
 
-        emailSender(email, "Verify OTP", emailTemplate);
-        return resolve({
-          status: 200,
-          data: "Email has been sent successfully",
-        });
+          emailSender(email, "Verify OTP", emailTemplate);
+          return resolve({
+            status: 200,
+            data: "Email has been sent successfully",
+          });
+        }
       } else {
         return resolve({ status: 500, data: "Email doesn't exist!" });
       }
@@ -145,33 +149,40 @@ async function signinUser(payload) {
       const filter = { email: email };
       const user = await users.findOne(filter);
       if (user) {
-        const password = payload.password;
-        const storedHashedPassword = user.password;
-        const isPasswordMatch = await bcrypt.compare(
-          password,
-          storedHashedPassword
-        );
-        if (isPasswordMatch) {
-          const data = {
-            firstName: user?.firstName,
-            lastName: user?.lastName,
-            gender: user?.gender,
-            email: user?.email,
-          };
-          const token = await createToken(data, 3600);
-
-          data.token = token;
-
-          const result = {
-            user: data,
-            message: "Login Success!",
-          };
-          return resolve({ status: 200, data: result });
-        } else {
+        if (!user.isVerified) {
           return resolve({
-            status: 501,
-            data: "Invalid Password",
+            status: 401,
+            data: "User is not verified!",
           });
+        } else {
+          const password = payload.password;
+          const storedHashedPassword = user.password;
+          const isPasswordMatch = await bcrypt.compare(
+            password,
+            storedHashedPassword
+          );
+          if (isPasswordMatch) {
+            const data = {
+              firstName: user?.firstName,
+              lastName: user?.lastName,
+              gender: user?.gender,
+              email: user?.email,
+            };
+            const token = await createToken(data, 3600);
+
+            data.token = token;
+
+            const result = {
+              user: data,
+              message: "Login Success!",
+            };
+            return resolve({ status: 200, data: result });
+          } else {
+            return resolve({
+              status: 501,
+              data: "Invalid Password",
+            });
+          }
         }
       } else {
         return resolve({
@@ -192,13 +203,20 @@ async function forgotPasswordUser(payload) {
       const filter = { email: email };
       const user = await users.findOne(filter);
       if (user) {
-        const emailTemplate = setPasswordTemplate(user?.firstName, email);
-        const subject = "Password Reset Request";
-        emailSender(email, subject, emailTemplate);
-        return resolve({
-          status: 200,
-          data: "Email has been sent successfully",
-        });
+        if (!user.isVerified) {
+          return resolve({
+            status: 401,
+            data: "User is not verified!",
+          });
+        } else {
+          const emailTemplate = setPasswordTemplate(user?.firstName, email);
+          const subject = "Password Reset Request";
+          emailSender(email, subject, emailTemplate);
+          return resolve({
+            status: 200,
+            data: "Email has been sent successfully",
+          });
+        }
       } else {
         return resolve({
           status: 501,
@@ -215,24 +233,52 @@ async function setNewPasswordUser(payload) {
   return new Promise(async function (resolve, reject) {
     try {
       const email = payload.email.toLowerCase();
-      const password = payload.password;
-      const salt = 10;
-      const hashPassword = await bcrypt.hash(password, salt);
       const filter = { email: email };
-      const data = {
-        password: hashPassword,
-        updatedAt: new Date(),
-      };
-      const update = await users.findOneAndUpdate(filter, data, {
-        new: true,
-      });
-      if (update) {
-        return resolve({
-          status: 200,
-          data: "Your Password has been updated successfully!",
-        });
+      const user = await users.findOne(filter);
+      if (user) {
+        if (!user.isVerified) {
+          return resolve({
+            status: 401,
+            data: "User is not verified!",
+          });
+        } else {
+          const password = payload.password;
+          const storedHashedPassword = user.password;
+          const isPasswordMatch = await bcrypt.compare(
+            password,
+            storedHashedPassword
+          );
+          if (isPasswordMatch) {
+            return resolve({
+              status: 409,
+              data: "New password cannot be same as old password!",
+            });
+          } else {
+            const salt = 10;
+            const hashPassword = await bcrypt.hash(password, salt);
+
+            const data = {
+              password: hashPassword,
+              updatedAt: new Date(),
+            };
+            const update = await users.findOneAndUpdate(filter, data, {
+              new: true,
+            });
+            if (update) {
+              return resolve({
+                status: 200,
+                data: "Your Password has been updated successfully!",
+              });
+            } else {
+              return resolve({ status: 500, data: "Server Error!" });
+            }
+          }
+        }
       } else {
-        return resolve({ status: 500, data: "Server Error!" });
+        return resolve({
+          status: 501,
+          data: "User doesn't exist!",
+        });
       }
     } catch (error) {
       return reject(error);
