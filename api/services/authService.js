@@ -113,7 +113,7 @@ async function resendVerifyEmailUser(payload) {
 
       if (user) {
         if (user.isVerified) {
-          return resolve({ status: 409, data: "User already verified!" });
+          return resolve({ status: 409, data: "Account is already verified!" });
         } else {
           const OTP = generateRandomNumber();
 
@@ -152,7 +152,7 @@ async function signinUser(payload) {
         if (!user.isVerified) {
           return resolve({
             status: 401,
-            data: "User is not verified!",
+            data: "Account is not verified!",
           });
         } else {
           const password = payload.password;
@@ -206,7 +206,7 @@ async function forgotPasswordUser(payload) {
         if (!user.isVerified) {
           return resolve({
             status: 401,
-            data: "User is not verified!",
+            data: "Account is not verified!",
           });
         } else {
           const emailTemplate = setPasswordTemplate(user?.firstName, email);
@@ -239,7 +239,7 @@ async function setNewPasswordUser(payload) {
         if (!user.isVerified) {
           return resolve({
             status: 401,
-            data: "User is not verified!",
+            data: "Account is not verified!",
           });
         } else {
           const password = payload.password;
