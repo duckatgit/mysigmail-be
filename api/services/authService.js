@@ -36,7 +36,7 @@ async function signupUser(payload) {
           firstName: payload?.firstName,
           lastName: payload?.lastName,
           gender: payload?.gender,
-          email: payload?.email,
+          email: email,
           password: hashPassword,
           OTP,
         };
@@ -110,6 +110,7 @@ async function resendVerifyEmailUser(payload) {
       const email = payload?.email.toLowerCase();
       const filter = { email: email };
       const user = await users.findOne(filter);
+      
       if (user) {
         const OTP = generateRandomNumber();
 
@@ -175,7 +176,7 @@ async function signinUser(payload) {
       } else {
         return resolve({
           status: 501,
-          data: "Invalid Email",
+          data: "Email not register, Please signup first",
         });
       }
     } catch (error) {
