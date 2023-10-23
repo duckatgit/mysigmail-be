@@ -44,7 +44,8 @@ async function signupUser(payload) {
         const result = await query.save();
 
         if (result) {
-          const emailTemplate = verifyOTPTemplate(payload?.firstName, OTP);
+          const verificationURL = `http://ec2-54-208-227-113.compute-1.amazonaws.com:8080/verify-email?email=${email}`
+          const emailTemplate = verifyOTPTemplate(payload?.firstName, OTP, verificationURL);
 
           emailSender(email, "Verify OTP", emailTemplate);
           return resolve({ status: 200, data: result });
@@ -124,8 +125,9 @@ async function resendVerifyEmailUser(payload) {
           await users.findOneAndUpdate(filter, data, {
             new: true,
           });
+          const verificationURL = `http://127.0.0.1:5177/verify-email?email=${email}`
 
-          const emailTemplate = verifyOTPTemplate(user?.firstName, OTP);
+          const emailTemplate = verifyOTPTemplate(user?.firstName, OTP, verificationURL);
 
           emailSender(email, "Verify OTP", emailTemplate);
           return resolve({
