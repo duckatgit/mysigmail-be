@@ -1,90 +1,13 @@
 const users = require("../models/usersModel");
 const signatureDetails = require("../models/signatureDetailsModel");
-const uploadProject = require("../models/uploadProjectModel");
 
 module.exports = {
-  uploadImgUser,
+    uploadProjectData,
   getSignDetailsUser,
   updateImageLinkUser,
-  uploadProjectUser,
 };
 
-async function uploadProjectUser(payload, fileLink) {
-  return new Promise(async function (resolve, reject) {
-    try {
-      const userId = payload.userId;
-      const filter = { _id: userId };
-      const user = await users.findOne(filter);
-      if (user) {
-        if (!user.isVerified) {
-          return resolve({
-            status: 401,
-            data: "Account is not verified!",
-          });
-        } else {
-          const filterSignature = { userId: userId };
-
-          const isSignatureExist = await uploadProject.findOne(
-            filterSignature
-          );
-          const data = {
-            userId: payload.userId,
-            projectURL: fileLink,
-          };
-          if (isSignatureExist) {
-            data.updatedAt = new Date();
-            const update = await uploadProject.findOneAndUpdate(
-              filterSignature,
-              data,
-              {
-                new: true,
-              }
-            );
-            if (update) {
-              const show = {
-                message: "Project uploaded successfully",
-                projectURL: fileLink,
-              };
-              return resolve({
-                status: 200,
-                data: show,
-              });
-            } else {
-              return resolve({ status: 500, data: "Server Error!" });
-            }
-          } else {
-            var query = new uploadProject(data);
-            const result = await query.save();
-            if (result) {
-              const show = {
-                message: "Project uploaded successfully",
-                projectURL: fileLink,
-              };
-              return resolve({
-                status: 200,
-                data: show,
-              });
-            } else {
-              return resolve({
-                status: 500,
-                data: "Server Error!",
-              });
-            }
-          }
-        }
-      } else {
-        return resolve({
-          status: 501,
-          data: "User doesn't exist!",
-        });
-      }
-    } catch (error) {
-      return reject(error);
-    }
-  });
-}
-
-async function uploadImgUser(payload, fileLink) {
+async function uploadProjectData(payload, fileLink) {
   return new Promise(async function (resolve, reject) {
     try {
       const userId = payload.userId;
@@ -104,7 +27,7 @@ async function uploadImgUser(payload, fileLink) {
           );
           const data = {
             userId: payload.userId,
-            imgURL: fileLink,
+            projectURL: fileLink,
           };
           if (isSignatureExist) {
             data.updatedAt = new Date();
@@ -133,7 +56,7 @@ async function uploadImgUser(payload, fileLink) {
             if (result) {
               const show = {
                 message: "Image uploaded successfully",
-                imageUrl: fileLink,
+                projectUrl: fileLink,
               };
               return resolve({
                 status: 200,

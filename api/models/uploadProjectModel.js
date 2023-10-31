@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
-const signDetailsModel = new mongoose.Schema(
+const uploadProjectModel = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-    imgURL: {
+    projectURL: {
       type: String,
       required: true,
     },
@@ -17,4 +17,4 @@ const signDetailsModel = new mongoose.Schema(
   }
 );
 
-module.exports = mongoose.model("signature-details", signDetailsModel, "SignatureDetails");
+module.exports = mongoose.model("upload-project", uploadProjectModel, "UploadProject");
