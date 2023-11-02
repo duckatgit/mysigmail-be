@@ -6,10 +6,9 @@ module.exports = {
   uploadImgUser,
   getSignDetailsUser,
   updateImageLinkUser,
-  uploadProjectUser,
 };
 
-async function uploadProjectUser(payload, fileLink) {
+async function uploadImgUser(payload, fileLink) {
   return new Promise(async function (resolve, reject) {
     try {
       const userId = payload.userId;
@@ -24,16 +23,16 @@ async function uploadProjectUser(payload, fileLink) {
         } else {
           const filterSignature = { userId: userId };
 
-          const isSignatureExist = await uploadProject.findOne(
+          const isSignatureExist = await signatureDetails.findOne(
             filterSignature
           );
           const data = {
             userId: payload.userId,
-            projectURL: fileLink,
+            imgURL: fileLink,
           };
           if (isSignatureExist) {
             data.updatedAt = new Date();
-            const update = await uploadProject.findOneAndUpdate(
+            const update = await signatureDetails.findOneAndUpdate(
               filterSignature,
               data,
               {
@@ -42,8 +41,8 @@ async function uploadProjectUser(payload, fileLink) {
             );
             if (update) {
               const show = {
-                message: "Project uploaded successfully",
-                projectURL: fileLink,
+                message: "Image uploaded successfully",
+                imageUrl: fileLink,
               };
               return resolve({
                 status: 200,
@@ -53,12 +52,12 @@ async function uploadProjectUser(payload, fileLink) {
               return resolve({ status: 500, data: "Server Error!" });
             }
           } else {
-            var query = new uploadProject(data);
+            var query = new signatureDetails(data);
             const result = await query.save();
             if (result) {
               const show = {
-                message: "Project uploaded successfully",
-                projectURL: fileLink,
+                message: "Image uploaded successfully",
+                imageUrl: fileLink,
               };
               return resolve({
                 status: 200,
