@@ -1,13 +1,10 @@
 const { OAuth2Client } = require("google-auth-library");
 async function getEmailFromIdToken(idToken) {
   try {
-    const client = new OAuth2Client(
-      "838689770783-92j7imng6gsq9q2iau523tu9k44cvffe.apps.googleusercontent.com"
-    );
+    const client = new OAuth2Client(process.env.CLIENT_ID);
     const ticket = await client.verifyIdToken({
       idToken,
-      audience:
-        "838689770783-92j7imng6gsq9q2iau523tu9k44cvffe.apps.googleusercontent.com",
+      audience: process.env.CLIENT_ID,
     });
     const payload = ticket.getPayload();
     const userEmail = payload.email; // Extract user's email

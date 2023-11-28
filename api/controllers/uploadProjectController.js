@@ -60,12 +60,10 @@ exports.sendSignTemplate = async function (req, res) {
 };
 
 exports.sendSignatureTemplateDemo = async function (req, res) {
-  const CLIENT_ID =
-    "838689770783-92j7imng6gsq9q2iau523tu9k44cvffe.apps.googleusercontent.com";
-  const CLIENT_SECRET = "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";
-  const REDIRECT_URI = "http://127.0.0.1:5177/dashboard/basic";
-  const AUTHORIZATION_URL = "https://accounts.google.com/o/oauth2/auth";
-  const TOKEN_URL = "https://oauth2.googleapis.com/token";
+  const CLIENT_ID = process.env.CLIENT_ID;
+  const CLIENT_SECRET = process.env.CLIENT_SECRET;
+  const REDIRECT_URI = process.env.REDIRECT_URI;
+  const TOKEN_URL = process.env.TOKEN_URL;
 
   // Initialize OAuth2 client
   const oAuth2Client = new google.auth.OAuth2(
@@ -90,11 +88,10 @@ exports.sendSignatureTemplateDemo = async function (req, res) {
 // Add a new route for handling the callback after the user grants permission
 exports.signatureCallback = async function (req, res) {
   const { structure, codeParam } = req.body;
-  const CLIENT_ID =
-    "838689770783-92j7imng6gsq9q2iau523tu9k44cvffe.apps.googleusercontent.com";
-  const CLIENT_SECRET = "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";
-  const REDIRECT_URI = "http://127.0.0.1:5177/dashboard/basic";
-  const TOKEN_URL = "https://oauth2.googleapis.com/token";
+  const CLIENT_ID = process.env.CLIENT_ID;
+  const CLIENT_SECRET = process.env.CLIENT_SECRET;
+  const REDIRECT_URI = process.env.REDIRECT_URI;
+  const TOKEN_URL = process.env.TOKEN_URL;
 
   // Extract the authorization code from the query parameters
   const code = codeParam;
@@ -144,11 +141,9 @@ async function updateSignature(
   structure,
   userEmail
 ) {
-  const CLIENT_ID =
-    "838689770783-92j7imng6gsq9q2iau523tu9k44cvffe.apps.googleusercontent.com";
-  const CLIENT_SECRET = "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";
-  const REDIRECT_URI = "http://127.0.0.1:5177/dashboard/basic";
-  const TOKEN_URL = "https://oauth2.googleapis.com/token";
+  const CLIENT_ID = process.env.CLIENT_ID;
+  const CLIENT_SECRET = process.env.CLIENT_SECRET;
+  const REDIRECT_URI = process.env.REDIRECT_URI;
   const oAuth2Client = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,
