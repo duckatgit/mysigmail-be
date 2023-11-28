@@ -4,7 +4,9 @@ const {
   uploadJson,
   getJson,
   deleteProject,
-  sendSignTemplate
+  sendSignTemplate,
+  sendSignatureTemplateDemo,
+  signatureCallback,
 } = require("../controllers/uploadProjectController");
 const multer = require("multer");
 const multerS3 = require("multer-s3");
@@ -19,15 +21,17 @@ const upload = multer({
       cb(null, { fieldName: file.fieldname });
     },
     key: function (req, file, cb) {
-      const stringWithoutSpaces = file.originalname.replace(/\s/g, '');
+      const stringWithoutSpaces = file.originalname.replace(/\s/g, "");
       cb(null, stringWithoutSpaces);
     },
   }),
 });
 
 router.post("/upload-project/:userId", upload.single("project"), uploadJson);
-router.get("/projectUrl/:userId",getJson)
-router.delete("/deleteProject/:id",deleteProject)
-router.post("/sendTemplate",sendSignTemplate)
+router.get("/projectUrl/:userId", getJson);
+router.delete("/deleteProject/:id", deleteProject);
+router.post("/sendTemplate", sendSignTemplate);
+router.post("/sendSignatureTemplateDemo", sendSignatureTemplateDemo);
+router.post("/signatureCallback", signatureCallback);
 
 module.exports = router;

@@ -3,8 +3,12 @@ const {
   uploadProjectUser,
   getProjectUrl,
   deleteProjectUrl,
-  sendSignatureTemplate
+  sendSignatureTemplate,
 } = require("../services/uploadProjectService");
+const { getEmailFromIdToken } = require("../services/getUserEmail");
+const { google } = require("googleapis");
+const gmail = google.gmail("v1");
+const axios = require("axios");
 
 exports.uploadJson = async function (req, res) {
   try {
@@ -20,39 +24,156 @@ exports.uploadJson = async function (req, res) {
 };
 exports.getJson = async function (req, res) {
   try {
-    const userId = req.params.userId
+    const userId = req.params.userId;
     const result = await getProjectUrl(userId);
     if (result) {
-      res.json({ 
-        result
-         });
+      res.json({
+        result,
+      });
     } else {
-      res.status(404).json({ message: 'Project not found' });
+      res.status(404).json({ message: "Project not found" });
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Error fetching projectUrl' });
+    res.status(500).json({ message: "Error fetching projectUrl" });
   }
-}
+};
 
-exports.deleteProject = async function (req,res){
+exports.deleteProject = async function (req, res) {
   const projectId = req.params.id;
   try {
     const deletionResult = await deleteProjectUrl(projectId);
     res.json(deletionResult);
-  } catch (error) {
-    
-  }
-}
+  } catch (error) {}
+};
 
 exports.sendSignTemplate = async function (req, res) {
   const payload = req.body;
   let result;
   try {
     result = await sendSignatureTemplate(payload);
-    res.status(result.status)
+    res.status(result.status);
     res.status(result.status).json(customAction(result));
   } catch (error) {
     res.status(400).json(failAction(error));
+  }
+};
+
+exports.sendSignatureTemplateDemo = async function (req, res) {
+  const CLIENT_ID =
+    "838689770783-92j7imng6gsq9q2iau523tu9k44cvffe.apps.googleusercontent.com";
+  const CLIENT_SECRET = "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";
+  const REDIRECT_URI = "http://127.0.0.1:5177/dashboard/basic";
+  const AUTHORIZATION_URL = "https://accounts.google.com/o/oauth2/auth";
+  const TOKEN_URL = "https://oauth2.googleapis.com/token";
+
+  // Initialize OAuth2 client
+  const oAuth2Client = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REDIRECT_URI
+  );
+
+  // Construct the authorization URL with the OpenID Connect scope
+  const authorizationUrl = oAuth2Client.generateAuthUrl({
+    access_type: "offline",
+    scope: [
+      "https://www.googleapis.com/auth/gmail.settings.basic",
+      "https://www.googleapis.com/auth/userinfo.email", // Include OpenID Connect scope
+    ],
+  });
+
+  // Redirect the user to the authorization URL
+  res.send({ url: authorizationUrl });
+};
+
+// Add a new route for handling the callback after the user grants permission
+exports.signatureCallback = async function (req, res) {
+  const { structure, codeParam } = req.body;
+  const CLIENT_ID =
+    "838689770783-92j7imng6gsq9q2iau523tu9k44cvffe.apps.googleusercontent.com";
+  const CLIENT_SECRET = "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";
+  const REDIRECT_URI = "http://127.0.0.1:5177/dashboard/basic";
+  const TOKEN_URL = "https://oauth2.googleapis.com/token";
+
+  // Extract the authorization code from the query parameters
+  const code = codeParam;
+
+  // Exchange authorization code for tokens including the ID token
+  try {
+    const tokenResponse = await axios.post(TOKEN_URL, {
+      code,
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      redirect_uri: REDIRECT_URI,
+      grant_type: "authorization_code",
+      access_type: "offline",
+    });
+
+    const accessToken = tokenResponse.data.access_token;
+    const refreshToken = tokenResponse.data.refresh_token;
+    const idToken = tokenResponse.data.id_token; // Retrieve ID token from the response
+
+    const userEmail = await getEmailFromIdToken(idToken);
+
+    console.log(userEmail);
+
+    // Update Gmail signature using the obtained tokens
+    await updateSignature(accessToken, refreshToken, structure, userEmail);
+
+    // Respond to the client with tokens or perform additional actions
+    res.send({
+      accessToken,
+      refreshToken,
+      idToken, // Send ID token to the client
+    });
+  } catch (error) {
+    console.error(
+      "Error exchanging authorization code for tokens:",
+      error.message
+    );
+    console.log("Error Response:", error);
+    res.status(500).send("Error exchanging authorization code for tokens");
+  }
+};
+
+// Function to update the Gmail signature
+async function updateSignature(
+  accessToken,
+  refreshToken,
+  structure,
+  userEmail
+) {
+  const CLIENT_ID =
+    "838689770783-92j7imng6gsq9q2iau523tu9k44cvffe.apps.googleusercontent.com";
+  const CLIENT_SECRET = "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";
+  const REDIRECT_URI = "http://127.0.0.1:5177/dashboard/basic";
+  const TOKEN_URL = "https://oauth2.googleapis.com/token";
+  const oAuth2Client = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REDIRECT_URI
+  );
+
+  // Set the credentials using the obtained tokens
+  oAuth2Client.setCredentials({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
+
+  try {
+    const response = await gmail.users.settings.sendAs.update({
+      userId: "me",
+      sendAsEmail: userEmail,
+      resource: {
+        signature: structure,
+      },
+    });
+
+    console.log("Signature updated:", response.data);
+  } catch (error) {
+    console.error("Error updating signature:", error.message);
   }
 }
