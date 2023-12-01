@@ -155,7 +155,8 @@ async function resendVerifyEmailUser(payload) {
 async function signinUser(payload) {
   return new Promise(async function (resolve, reject) {
     try {
-      const email = payload?.email.toLowerCase();
+      const deCrypt = atob(payload.data);
+      const [email, password] = deCrypt.split(":");
       const filter = { email: email };
       const user = await users.findOne(filter);
       if (user) {
@@ -165,7 +166,6 @@ async function signinUser(payload) {
             data: "Account is not verified!",
           });
         } else {
-          const password = payload.password;
           const storedHashedPassword = user.password;
           const isPasswordMatch = await bcrypt.compare(
             password,
