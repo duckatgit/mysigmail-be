@@ -12,17 +12,17 @@ const {
   setNewPasswordUser,
 } = require("../services/authService");
 const { verifyToken } = require("../utils/jwt");
+const { logErrorToMongoDB, getUserId } = require("../services/logError");
 
 exports.signup = async function (req, res) {
   const payload = req.body;
   let result;
   try {
     result = await signupUser(payload);
-    res
-      .status(result.status)
-      res.status(result.status).json(customAction(result));
-
+    res.status(result.status);
+    res.status(result.status).json(customAction(result));
   } catch (error) {
+    logErrorToMongoDB("signup", error);
     res.status(400).json(failAction(error));
   }
 };
@@ -35,6 +35,7 @@ exports.verifyEmail = async function (req, res) {
     res.status(result.status).json(customAction(result));
   } catch (error) {
     res.status(400).json(failAction(error));
+    logErrorToMongoDB("verifyEmail", error);
   }
 };
 
@@ -46,6 +47,7 @@ exports.resendVerifyEmail = async function (req, res) {
     res.status(result.status).json(customAction(result));
   } catch (error) {
     res.status(400).json(failAction(error));
+    logErrorToMongoDB("resendVerifyEmail", error);
   }
 };
 
@@ -54,9 +56,12 @@ exports.signin = async function (req, res) {
   let result;
   try {
     result = await signinUser(payload);
+    const userIdString = result.data.user.userId.toString();
+    getUserId(userIdString);
     res.status(result.status).json(customAction(result));
   } catch (error) {
     res.status(400).json(failAction(error));
+    logErrorToMongoDB("signin", error);
   }
 };
 
@@ -68,6 +73,7 @@ exports.forgotPassword = async function (req, res) {
     res.status(result.status).json(customAction(result));
   } catch (error) {
     res.status(400).json(failAction(error));
+    logErrorToMongoDB("forgotPassword", error);
   }
 };
 
@@ -79,6 +85,7 @@ exports.setNewPassword = async function (req, res) {
     res.status(result.status).json(customAction(result));
   } catch (error) {
     res.status(400).json(failAction(error));
+    logErrorToMongoDB("setNewPassword", error);
   }
 };
 
@@ -91,5 +98,6 @@ exports.validateToken = async function (req, res) {
     }
   } catch (error) {
     res.status(401).json(failAction(error));
+    logErrorToMongoDB("validateToken", error);
   }
 };

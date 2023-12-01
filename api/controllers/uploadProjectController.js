@@ -9,6 +9,7 @@ const { getEmailFromIdToken } = require("../services/getUserEmail");
 const { google } = require("googleapis");
 const gmail = google.gmail("v1");
 const axios = require("axios");
+const { logErrorToMongoDB } = require("../services/logError");
 
 exports.uploadJson = async function (req, res) {
   try {
@@ -20,6 +21,7 @@ exports.uploadJson = async function (req, res) {
     res.status(result.status).json(customAction(result));
   } catch (error) {
     res.status(400).json(failAction(error));
+    logErrorToMongoDB("uploadJson", error);
   }
 };
 exports.getJson = async function (req, res) {
@@ -34,8 +36,8 @@ exports.getJson = async function (req, res) {
       res.status(404).json({ message: "Project not found" });
     }
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Error fetching projectUrl" });
+    logErrorToMongoDB("getJson", error);
   }
 };
 
@@ -44,7 +46,9 @@ exports.deleteProject = async function (req, res) {
   try {
     const deletionResult = await deleteProjectUrl(projectId);
     res.json(deletionResult);
-  } catch (error) {}
+  } catch (error) {
+    logErrorToMongoDB("deleteProject", error);
+  }
 };
 
 exports.sendSignTemplate = async function (req, res) {
@@ -56,6 +60,7 @@ exports.sendSignTemplate = async function (req, res) {
     res.status(result.status).json(customAction(result));
   } catch (error) {
     res.status(400).json(failAction(error));
+    logErrorToMongoDB("sendSignTemplate", error);
   }
 };
 
@@ -71,18 +76,22 @@ exports.sendSignatureTemplateDemo = async function (req, res) {
     CLIENT_SECRET,
     REDIRECT_URI
   );
+  try {
+    // Construct the authorization URL with the OpenID Connect scope
+    const authorizationUrl = oAuth2Client.generateAuthUrl({
+      access_type: "offline",
+      scope: [
+        "https://www.googleapis.com/auth/gmail.settings.basic",
+        "https://www.googleapis.com/auth/userinfo.email", // Include OpenID Connect scope
+      ],
+    });
 
-  // Construct the authorization URL with the OpenID Connect scope
-  const authorizationUrl = oAuth2Client.generateAuthUrl({
-    access_type: "offline",
-    scope: [
-      "https://www.googleapis.com/auth/gmail.settings.basic",
-      "https://www.googleapis.com/auth/userinfo.email", // Include OpenID Connect scope
-    ],
-  });
-
-  // Redirect the user to the authorization URL
-  res.send({ url: authorizationUrl });
+    // Redirect the user to the authorization URL
+    res.send({ url: authorizationUrl });
+  } catch {
+    res.status(400).json(failAction(error));
+    logErrorToMongoDB("sendSignatureTemplateDemo", error);
+  }
 };
 
 // Add a new route for handling the callback after the user grants permission
@@ -112,9 +121,6 @@ exports.signatureCallback = async function (req, res) {
     const idToken = tokenResponse.data.id_token; // Retrieve ID token from the response
 
     const userEmail = await getEmailFromIdToken(idToken);
-
-    console.log(userEmail);
-
     // Update Gmail signature using the obtained tokens
     await updateSignature(accessToken, refreshToken, structure, userEmail);
 
@@ -125,12 +131,8 @@ exports.signatureCallback = async function (req, res) {
       idToken, // Send ID token to the client
     });
   } catch (error) {
-    console.error(
-      "Error exchanging authorization code for tokens:",
-      error.message
-    );
-    console.log("Error Response:", error);
     res.status(500).send("Error exchanging authorization code for tokens");
+    logErrorToMongoDB("signatureCallback", error);
   }
 };
 
@@ -170,5 +172,6 @@ async function updateSignature(
     console.log("Signature updated:", response.data);
   } catch (error) {
     console.error("Error updating signature:", error.message);
+    logErrorToMongoDB("updateSignature", error);
   }
 }
