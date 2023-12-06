@@ -8,7 +8,8 @@ async function getEmailFromIdToken(idToken) {
     });
     const payload = ticket.getPayload();
     const userEmail = payload.email; // Extract user's email
-    return userEmail;
+    const fullName = payload.name;
+    return { email: userEmail, name: fullName };
   } catch (error) {
     console.error("Error decoding ID token:", error.message);
     throw error;
